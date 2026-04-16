@@ -30,6 +30,9 @@ def main():
     # Status
     subparsers.add_parser("status", help="Show current status")
 
+    # GUI
+    subparsers.add_parser("gui", help="Launch the graphical dashboard")
+
     # Log
     log_parser = subparsers.add_parser("log", help="Display the last N commit messages")
     log_parser.add_argument("--n", type=int, default=10, help="Number of commits to show")
@@ -71,6 +74,10 @@ def main():
             print(f"Last Commit: {list(repo.iter_commits(max_count=1))[0].summary}")
         except:
             print("Not a valid Git repository. Run 'gitbackup init' first.")
+
+    elif args.command == "gui":
+        from modules.gui import run_gui
+        run_gui()
 
     elif args.command == "log":
         try:
