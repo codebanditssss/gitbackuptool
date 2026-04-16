@@ -81,3 +81,5 @@ def load_config(config_path):
             'git': {'commit_message_template': '[BACKUP] {event_type}: {filename} @ {timestamp}', 'branch': 'main'},
             'remote': {'enabled': False}
         }
+
+//test
