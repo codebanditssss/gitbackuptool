@@ -62,9 +62,12 @@ class GitEngine(threading.Thread):
 
             elif event.event_type == 'deleted':
                 try:
-                    self.repo.index.remove([rel_path])
+                    # Use git rm --cached to properly stage the deletion
+                    self.repo.git.rm('--cached', '--ignore-unmatch', rel_path)
+                    # If the file was never tracked, the index won't change — skip commit
+                    if not self.repo.index.diff("HEAD"):
+                        return
                 except git.GitCommandError:
-                    # File might not be in index yet
                     return
 
             elif event.event_type == 'moved':
