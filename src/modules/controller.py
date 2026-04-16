@@ -82,4 +82,3 @@ def load_config(config_path):
             'remote': {'enabled': False}
         }
 
-//test

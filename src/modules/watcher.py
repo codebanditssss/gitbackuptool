@@ -25,23 +25,32 @@ class BackupEventHandler(FileSystemEventHandler):
         self.exclude_exts = set(config.get('watcher', {}).get('exclude_extensions', []))
 
     def _should_ignore(self, path):
-        """Check if the file should be ignored based on size or extension."""
-        # Ignore directories if needed, though Git mostly tracks files
+        """Check if the file should be ignored based on path, size, or extension."""
+        # --- CRITICAL: Never watch anything inside a .git/ folder ---
+        # Normalize separators and check every path segment
+        normalized = path.replace('\\', '/')
+        if '/.git/' in normalized or normalized.endswith('/.git'):
+            return True
+        # Also catch Windows absolute paths like C:\project\.git\...
+        if os.sep + '.git' + os.sep in path or path.endswith(os.sep + '.git'):
+            return True
+
+        # Ignore directories (Git tracks files, not folders)
         if os.path.isdir(path):
-            return False
-        
-        # Check extension
+            return True
+
+        # Check extension against exclusion list
         _, ext = os.path.splitext(path)
         if ext in self.exclude_exts:
             return True
-        
+
         # Check file size (only for existing files)
         try:
             if os.path.exists(path) and os.path.getsize(path) > self.max_size_bytes:
                 return True
         except (OSError, FileNotFoundError):
             pass
-            
+
         return False
 
     def on_created(self, event):
