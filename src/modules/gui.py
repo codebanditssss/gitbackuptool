@@ -43,22 +43,29 @@ class BackupGUI:
         
         self.style.configure("TFrame", background=self.bg_color)
         self.style.configure("TNotebook", background=self.bg_color, borderwidth=0)
-        self.style.configure("TNotebook.Tab", padding=[15, 5], font=("Segoe UI", 10))
         
-        self.style.configure("Card.TLabelframe", background="white", relief="flat", borderwidth=1)
-        self.style.configure("Card.TLabelframe.Label", font=("Segoe UI", 11, "bold"), foreground=self.primary_color, background="white")
+        # FIX: Ensure tabs don't change size when selected
+        tab_padding = [20, 8]
+        self.style.configure("TNotebook.Tab", 
+                            padding=tab_padding, 
+                            font=("Segoe UI", 10),
+                            background="#e0e0e0")
         
-        self.style.configure("Action.TButton", font=("Segoe UI", 10, "bold"), padding=10, background=self.primary_color, foreground="white")
-        self.style.map("Action.TButton", background=[('active', '#1557b0')])
+        # Force same padding for selected state to prevent "jumping"
+        self.style.map("TNotebook.Tab", 
+                       padding=[('selected', tab_padding)],
+                       background=[('selected', "white")],
+                       foreground=[('selected', self.primary_color)])
         
+        self.style.configure("Action.TButton", font=("Segoe UI", 10, "bold"), padding=10)
         self.style.configure("Header.TLabel", font=("Segoe UI", 16, "bold"), background=self.bg_color, foreground=self.text_color)
         self.style.configure("Status.TLabel", font=("Segoe UI", 10), background=self.bg_color)
 
     def _create_widgets(self):
         # Header
-        header_frame = ttk.Frame(self.root)
+        header_frame = tk.Frame(self.root, bg=self.bg_color)
         header_frame.pack(fill="x", padx=20, pady=(20, 10))
-        ttk.Label(header_frame, text="Git-based Backup Engine", style="Header.TLabel").pack(side="left")
+        tk.Label(header_frame, text="Git-based Backup Engine", font=("Segoe UI", 16, "bold"), bg=self.bg_color, fg=self.text_color).pack(side="left")
         
         # Tabs
         self.notebook = ttk.Notebook(self.root)
@@ -70,31 +77,31 @@ class BackupGUI:
         self._build_settings_tab()
 
     def _build_dashboard_tab(self):
-        tab = ttk.Frame(self.notebook, padding=20)
+        tab = tk.Frame(self.notebook, bg=self.bg_color, padx=20, pady=20)
         self.notebook.add(tab, text=" Dashboard ")
         
         # Folder Card
-        folder_card = ttk.LabelFrame(tab, text=" Target Directory ", padding=15, style="Card.TLabelframe")
+        folder_card = tk.LabelFrame(tab, text=" Target Directory ", font=("Segoe UI", 11, "bold"), 
+                                    bg="white", padx=15, pady=15, relief="flat", highlightbackground="#dadce0", highlightthickness=1)
         folder_card.pack(fill="x", pady=(0, 20))
         
-        path_frame = ttk.Frame(folder_card)
+        path_frame = tk.Frame(folder_card, bg="white")
         path_frame.pack(fill="x")
-        ttk.Entry(path_frame, textvariable=self.target_path, font=("Segoe UI", 10)).pack(side="left", expand=True, fill="x", padx=(0, 10))
+        tk.Entry(path_frame, textvariable=self.target_path, font=("Segoe UI", 10), relief="solid", borderwidth=1).pack(side="left", expand=True, fill="x", padx=(0, 10))
         ttk.Button(path_frame, text="Change Folder", command=self._browse_folder).pack(side="right")
         
         # Control Card
-        control_card = ttk.Frame(tab)
+        control_card = tk.Frame(tab, bg=self.bg_color)
         control_card.pack(fill="x", pady=10)
         
         self.start_btn = ttk.Button(control_card, text="▶ START BACKUP SERVICE", style="Action.TButton", command=self._toggle_service)
         self.start_btn.pack(side="left")
         
-        self.status_label = ttk.Label(control_card, text="● Status: Stopped", style="Status.TLabel", foreground="#5f6368")
+        self.status_label = tk.Label(control_card, text="● Status: Stopped", font=("Segoe UI", 10), bg=self.bg_color, fg="#5f6368")
         self.status_label.pack(side="left", padx=20)
         
         # Log View
-        log_label = ttk.Label(tab, text="Live Activity Activity Log", font=("Segoe UI", 10, "bold"))
-        log_label.pack(anchor="w", pady=(10, 5))
+        tk.Label(tab, text="Live Activity Log", font=("Segoe UI", 10, "bold"), bg=self.bg_color, fg=self.text_color).pack(anchor="w", pady=(10, 5))
         
         log_frame = tk.Frame(tab, bg="white", highlightbackground="#dadce0", highlightthickness=1)
         log_frame.pack(expand=True, fill="both")
@@ -103,11 +110,11 @@ class BackupGUI:
         self.log_text.pack(expand=True, fill="both")
 
     def _build_history_tab(self):
-        tab = ttk.Frame(self.notebook, padding=20)
+        tab = tk.Frame(self.notebook, bg=self.bg_color, padx=20, pady=20)
         self.notebook.add(tab, text=" Backup History ")
         
         # Treeview with scrollbar
-        tree_frame = ttk.Frame(tab)
+        tree_frame = tk.Frame(tab, bg=self.bg_color)
         tree_frame.pack(expand=True, fill="both")
         
         columns = ("hash", "message", "time")
@@ -127,36 +134,37 @@ class BackupGUI:
         scrollbar.pack(side="right", fill="y")
         
         # History Filter / Actions
-        actions = ttk.Frame(tab, padding=(0, 15))
+        actions = tk.Frame(tab, bg=self.bg_color, pady=15)
         actions.pack(fill="x")
         ttk.Button(actions, text="Refresh Logs", command=self._refresh_history).pack(side="left", padx=5)
         ttk.Button(actions, text="Restore to this Version", command=self._restore_selected).pack(side="right", padx=5)
 
     def _build_settings_tab(self):
-        tab = ttk.Frame(self.notebook, padding=20)
+        tab = tk.Frame(self.notebook, bg=self.bg_color, padx=20, pady=20)
         self.notebook.add(tab, text=" Advanced Settings ")
         
-        container = ttk.LabelFrame(tab, text=" Engine Configuration ", padding=20, style="Card.TLabelframe")
+        container = tk.LabelFrame(tab, text=" Engine Configuration ", font=("Segoe UI", 11, "bold"), 
+                                    bg="white", padx=20, pady=20, relief="flat", highlightbackground="#dadce0", highlightthickness=1)
         container.pack(fill="both", expand=True)
         
         # Grid layout for settings
-        grid = ttk.Frame(container, background="white")
+        grid = tk.Frame(container, bg="white")
         grid.pack(fill="x")
         
         # Watcher Settings
-        ttk.Label(grid, text="Debounce Window (ms):", background="white").grid(row=0, column=0, sticky="w", pady=10)
-        ttk.Entry(grid, textvariable=self.debounce_var, width=10).grid(row=0, column=1, sticky="w", padx=10)
+        tk.Label(grid, text="Debounce Window (ms):", bg="white", font=("Segoe UI", 10)).grid(row=0, column=0, sticky="w", pady=10)
+        tk.Entry(grid, textvariable=self.debounce_var, width=15, relief="solid", borderwidth=1).grid(row=0, column=1, sticky="w", padx=10)
         
-        ttk.Label(grid, text="Max File Size (MB):", background="white").grid(row=1, column=0, sticky="w", pady=10)
-        ttk.Entry(grid, textvariable=self.max_size_var, width=10).grid(row=1, column=1, sticky="w", padx=10)
+        tk.Label(grid, text="Max File Size (MB):", bg="white", font=("Segoe UI", 10)).grid(row=1, column=0, sticky="w", pady=10)
+        tk.Entry(grid, textvariable=self.max_size_var, width=15, relief="solid", borderwidth=1).grid(row=1, column=1, sticky="w", padx=10)
         
         # Remote Settings
-        ttk.Separator(grid, orient="horizontal").grid(row=2, column=0, columnspan=2, fill="x", pady=20)
+        tk.Frame(grid, height=1, bg="#dadce0").grid(row=2, column=0, columnspan=2, sticky="ew", pady=20)
         
-        ttk.Checkbutton(grid, text="Enable Remote Cloud Sync", variable=self.remote_enabled_var, background="white").grid(row=3, column=0, sticky="w")
+        tk.Checkbutton(grid, text="Enable Remote Cloud Sync", variable=self.remote_enabled_var, bg="white", font=("Segoe UI", 10)).grid(row=3, column=0, sticky="w")
         
-        ttk.Label(grid, text="Remote URL:", background="white").grid(row=4, column=0, sticky="w", pady=10)
-        ttk.Entry(grid, textvariable=self.remote_url_var, width=40).grid(row=4, column=1, sticky="w", padx=10)
+        tk.Label(grid, text="Remote URL:", bg="white", font=("Segoe UI", 10)).grid(row=4, column=0, sticky="w", pady=10)
+        tk.Entry(grid, textvariable=self.remote_url_var, width=40, relief="solid", borderwidth=1).grid(row=4, column=1, sticky="w", padx=10)
         
         # Save Button
         save_btn = ttk.Button(container, text="SAVE CONFIGURATION", command=self._save_settings)
@@ -171,7 +179,7 @@ class BackupGUI:
             self.config['remote']['enabled'] = self.remote_enabled_var.get()
             self.config['remote']['remote_url'] = self.remote_url_var.get()
             
-            # Write to file (simple TOML writer or formatted string)
+            # Write to file
             with open(self.config_path, 'w') as f:
                 f.write(f"[watcher]\ntarget_directory = \".\"\ndebounce_ms = {self.debounce_var.get()}\nrecursive = true\n"
                         f"exclude_extensions = [\".swp\", \".tmp\", \"~\", \".git\"]\nmax_file_size_mb = {self.max_size_var.get()}\n\n"
@@ -194,14 +202,14 @@ class BackupGUI:
         if self.controller and self.controller._running:
             self.controller.stop()
             self.start_btn.config(text="▶ START BACKUP SERVICE")
-            self.status_label.config(text="● Status: Stopped", foreground="#5f6368")
+            self.status_label.config(text="● Status: Stopped", fg="#5f6368")
             self._log_gui("Service stopped.")
         else:
             try:
                 self.controller = BackupController(self.target_path.get(), self.config)
                 self.controller.start()
                 self.start_btn.config(text="■ STOP BACKUP SERVICE")
-                self.status_label.config(text="● Status: RUNNING", foreground="#1e8e3e")
+                self.status_label.config(text="● Status: RUNNING", fg="#1e8e3e")
                 self._log_gui(f"Monitoring: {self.target_path.get()}")
                 self._refresh_history()
             except Exception as e:
